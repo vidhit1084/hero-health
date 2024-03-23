@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ping Data</title>
+  </head>
+  <body>
+    <h1 id="successMessage">Sending Data</h1>
+    <h1 id="failedMessage" style="display: none">
+      Failed to send data, because app is not running
+    </h1>
+
+    <button type="button" id="cancelButton" style="display: none">
+      Cancel
+    </button>
+
+    <form id="editData" style="display: none">
+      <label for="client">Client:</label>
+      <input type="text" name="" id="editClient" />
+      <br />
+      <label for="store">Store:</label>
+      <input type="text" name="" id="editStore" />
+      <br />
+      <label for="software">Software:</label>
+      <input type="text" name="" id="editSoftware" />
+      <br />
+      <label for="app">App List:</label>
+      <div id="appInputs"></div>
+      <button type="button" id="addAppButton">Add App</button>
+      <br />
+      <button type="button" id="submitData">Submit Edited Data</button>
+    </form>
+    <h1 id="editSuccess" style="display: none">Data Edited Successfully</h1>
+    <script>
+      const cancelButton = document.getElementById("cancelButton");
+      const submit_el = document.getElementById("submitData");
+
+      let client_el = document.getElementById("editClient");
+      let store_el = document.getElementById("editStore");
+      let software_el = document.getElementById("editSoftware");
+      const editForm = document.getElementById("editData");
+      const addAppButton = document.getElementById("addAppButton");
+      let formDataModified = false;
+      let idx = 0;
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        const response = await fetch("/flag", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ flag: false }),
+        });
+
+        try {
+          const response = await fetch("/data", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const jsonData = await response.json(); // Parse JSON data
+          console.log(jsonData); // Use the parsed JSON data
+          if (jsonData) {
+            client_el.value = jsonData.result.client;
+            store_el.value = jsonData.result.store;
+            software_el.value = jsonData.result.software;
+            const appInputsDiv = document.getElementById("appInputs");
+            appInputsDiv.innerHTML = "";
+            jsonData.result.appsArray.forEach((appName) => {
+              const appInput = document.createElement("input");
+              appInput.type = "text";
+              appInput.className = "editApp";
+              appInput.value = appName; // Prefill the input field with app name
+              appInputsDiv.appendChild(appInput);
+            });
+            formDataModified = false;
+
+            editForm.style.display = "block";
+            cancelButton.style.display = "block";
+          } else {
+            console.log("JSON data is not there");
+          }
+        } catch (error) {
+          console.error("Fetch error:", error);
+        }
+      });
+
+      cancelButton.addEventListener("click", () => {
+        editForm.style.display = "none";
+        // editButton.style.display = "block";
+        cancelButton.style.display = "none";
+        window.location.href = "success.html";
+      });
+
+      client_el.addEventListener("input", () => {
+        formDataModified = true;
+        updateEditButtonState();
+        console.log("rtrtrtrt");
+      });
+
+      store_el.addEventListener("input", () => {
+        formDataModified = true;
+        updateEditButtonState();
+      });
+
+      software_el.addEventListener("input", () => {
+        formDataModified = true;
+        updateEditButtonState();
+      });
+
+      const appInputs = document.getElementById("appInputs");
+      appInputs.addEventListener("change", () => {
+        formDataModified = true;
+        updateEditButtonState();
+        console.log("working");
+      });
+
+      const maxAppInputs = 5;
+
+      function addAppInputField() {
+        const appInputsDiv = document.getElementById("appInputs");
+        const appInputs = appInputsDiv.querySelectorAll(".editApp");
+
+        if (appInputs.length < maxAppInputs) {
+          const appInput = document.createElement("input");
+          appInput.type = "text";
+          appInput.className = "editApp";
+          appInput.placeholder = "Enter App Name"; // You can set a placeholder text
+          appInput.addEventListener("input", () => {
+            formDataModified = true;
+            updateEditButtonState();
+          });
+
+          appInputsDiv.appendChild(appInput);
+        }
+
+        // Disable the "Add App" button if the maximum number of inputs is reached
+        if (appInputs.length >= maxAppInputs) {
+          addAppButton.disabled = true;
+        }
+      }
+
+      addAppButton.addEventListener("click", addAppInputField);
+
+      submit_el.addEventListener("click", async () => {
+        if (validateForm()) {
+          client_el = document.getElementById("editClient");
+          store_el = document.getElementById("editStore");
+          software_el = document.getElementById("editSoftware");
+          // app_el = document.getElementById("editApp");
+
+          const client = client_el.value;
+          const store = store_el.value;
+          const software = software_el.value;
+          // const app = app_el.value;
+
+          const appInputs = document.querySelectorAll(".editApp");
+          const appsArray = Array.from(appInputs)
+            .map((input) => input.value.trim())
+            .filter((appName) => appName !== "");
+          console.log(appsArray, "jkjkjkjk");
+          const jsonData = { client, store, software, appsArray };
+          console.log(jsonData, "yoooooo");
+          try {
+            const response = await fetch("/update", {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(jsonData),
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const responseData = await response.json();
+            console.log(responseData);
+
+            formDataModified = false;
+            updateEditButtonState();
+            window.location.href = "success.html";
+          } catch (error) {
+            console.error("Fetch error:", error);
+            // Handle the error as needed, e.g., show an error message to the user
+          }
+        }
+      });
+
+      function updateEditButtonState() {
+        if (formDataModified) {
+          submit_el.removeAttribute("disabled");
+        } else {
+          submit_el.setAttribute("disabled", "true");
+        }
+      }
+
+      function validateForm() {
+        const client = document.getElementById("editClient").value;
+        const store = document.getElementById("editStore").value;
+        const software = document.getElementById("editSoftware").value;
+
+        console.log(client, store, "haha");
+        // Check if any of the fields are empty
+        if (!client || !store || !software) {
+          alert("Please fill in all fields.");
+          return false;
+        }
+
+        return true; // Form is valid
+      }
+
+      updateEditButtonState();
+    </script>
+  </body>
+</html>

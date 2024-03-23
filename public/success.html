@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sending Ping</title>
+  </head>
+  <body>
+    <h1 id="successMessage">Sending Ping Succesfully</h1>
+    <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        const response = await fetch("/flag", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ flag: true }),
+        });
+      });
+    </script>
+  </body>
+</html>

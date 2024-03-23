@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome User</title>
+  </head>
+  <body>
+    <h1>Hello User</h1>
+    <h2>JSON Data:</h2>
+    <ul id="jsonDataList"></ul>
+    <button id="editDataBtn">Edit Data</button>
+    <!-- <button id="continueBtn">Continue</button> -->
+
+    <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        const response = await fetch("/flag", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ flag: true }),
+        });
+      });
+      // continueBtn.addEventListener("click", async () => {
+      //   window.location.href = "success.html";
+      // });
+
+      editDataBtn.addEventListener("click", async () => {
+        window.location.href = "edit.html";
+      });
+    </script>
+  </body>
+</html>

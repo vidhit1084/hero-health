@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Form</title>
+  </head>
+  <body>
+    <form id="myForm">
+      <label for="client">Client:</label>
+      <input type="text" id="client" name="client" value="hero" disabled /><br /><br />
+
+      <label for="store">Store:</label>
+      <input type="text" id="store" name="store" required /><br /><br />
+
+      <label for="software">Software:</label>
+      <input type="text" id="software" name="software" value="hero_dealership" disabled /><br /><br />
+
+      <label for="app">App:</label>
+      <input type="text" id="app" name="app" value="WBC" disabled /><br /><br />
+
+      <!-- <label for="apps">Apps:</label>
+      <input type="text" name="" id="app" />
+      <div id="appList">
+        <ul id="apps"></ul>
+      </div> -->
+      <br /><br />
+
+      <button type="button" id="submitData">Submit Data</button>
+    </form>
+
+    <p class="success" id="successMessage" style="display: none">
+      Data submitted successfully.
+    </p>
+
+    <script>
+      const submit_el = document.getElementById("submitData");
+      const client_el = document.getElementById("client");
+      const store_el = document.getElementById("store");
+      const software_el = document.getElementById("software");
+      const app_el = document.getElementById("app");
+      const appsList = document.getElementById("apps");
+      const form = document.getElementById("myForm");
+      let appsArray = [];
+      let executionCount = 0;
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        const response = await fetch("/flag", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ flag: false }),
+        });
+      });
+      // const appEventListener = () => {
+      //   if (executionCount < 5) {
+      //     const newApp = app_el.value;
+
+      //     if (!appsArray.includes(newApp)) {
+      //       appsArray.push(newApp);
+      //       app_el.value = "";
+      //       executionCount++;
+      //       updateList();
+      //       console.log(appsArray, "nnice");
+      //     } else {
+      //       alert("Cannot add the same app twice.");
+      //     }
+      //   } else {
+      //     // Remove the event listener after it has executed five times
+      //     app_el.value = "";
+      //     app_el.setAttribute("disabled", "true");
+      //     app_el.removeEventListener("change", appEventListener);
+
+      //     alert("You can't add more than 5 apps");
+      //   }
+      // };
+      // app_el.addEventListener("change", appEventListener);
+
+      // function updateList() {
+      //   appsList.innerHTML = "";
+      //   for (let i = 0; i < appsArray.length; i++) {
+      //     const listItem = document.createElement("li");
+      //     listItem.textContent = appsArray[i];
+      //     appsList.appendChild(listItem);
+      //   }
+      // }
+
+      submit_el.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const client = client_el.value;
+        const store = store_el.value;
+        const software = software_el.value;
+        const formData = new FormData(form);
+        appsArray.push("WBC");
+        const jsonData = { client, store, software, appsArray };
+        console.log(jsonData, "hello");
+
+        const response = await fetch("/submit", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(jsonData),
+        });
+        console.log(response, "good");
+        if (response.ok) {
+          alert("Data submitted successfully!");
+          window.location.href = "/success.html";
+        } else {
+          alert("Error submitting data.");
+        }
+      });
+    </script>
+  </body>
+</html>
